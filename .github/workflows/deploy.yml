@@ -1,0 +1,57 @@
+name: Deploy Vite App to GitHub Pages
+
+on:
+  push:
+    branches: [ "1.3" ] # 监听你的 1.3 分支，提交代码时自动触发
+  workflow_dispatch: # 支持在 Actions 页面手动点击运行
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Fix asset paths in index.html
+        run: |
+          # 自动把构建后 /assets/ 开头的绝对路径替换为相对路径 ./assets/
+          sed -i 's|/assets/|./assets/|g' dist/index.html
+          # 如果项目存在多页（例如 publications.html, members.html），一并修正
+          for file in dist/*.html; do
+            if [ -f "$file" ]; then
+              sed -i 's|/assets/|./assets/|g' "$file"
+            fi
+          done
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist' # 上传 Vite 打包产出的 dist 目录
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
