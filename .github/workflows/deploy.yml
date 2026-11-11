@@ -2,8 +2,8 @@ name: Deploy Vite App to GitHub Pages
 
 on:
   push:
-    branches: [ "1.3" ] 
-  workflow_dispatch: 
+    branches: [ "1.3" ] # 监听 1.3 分支，提交代码时自动触发
+  workflow_dispatch: # 支持在 Actions 页面手动点击运行
 
 permissions:
   contents: read
@@ -33,20 +33,37 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build project (With Base Path)
+      - name: Build project (With Base Path & MPA Config)
         run: |
-          # 1. 强行指定 base 路径进行打包，让所有资源路径自动带上 /YeLab_Website/
+          # 1. 使用 Node.js 脚本在云端动态注入多页应用配置
+          # 这样你不需要修改本地的 vite.config.ts
+          node -e "
+            const fs = require('fs');
+            let config = fs.readFileSync('vite.config.ts', 'utf-8');
+            
+            // 检查是否已经配置了多页入口，防止重复注入
+            if (!config.includes('rollupOptions')) {
+              if (config.includes('export default defineConfig(')) {
+                config = config.replace(/export default defineConfig\(\{/, 'export default defineConfig({\n  build: {\n    rollupOptions: {\n      input: {\n        main: \"index.html\",\n        members: \"members.html\",\n        publications: \"publications.html\"\n      }\n    }\n  },');
+              } else if (config.includes('export default {')) {
+                config = config.replace(/export default \{/, 'export default {\n  build: {\n    rollupOptions: {\n      input: {\n        main: \"index.html\",\n        members: \"members.html\",\n        publications: \"publications.html\"\n      }\n    }\n  },');
+              }
+              fs.writeFileSync('vite.config.ts', config);
+              console.log('✅ 已成功注入多页配置');
+            } else {
+              console.log('ℹ️ 已存在多页配置，跳过注入');
+            }
+          "
+
+          # 2. 执行打包，并强制指定 base 路径
           npm run build -- --base=/YeLab_Website/
           
-          # 2. 添加 .nojekyll 防止 GitHub 忽略下划线文件
+          # 3. 添加 .nojekyll 防止 GitHub 忽略下划线文件
           touch dist/.nojekyll
           
-          # 3. 复制一份 404.html，防止 Vue Router 刷新子页面报错
-          cp dist/index.html dist/404.html
-          
-          # 4. (可选) 打印出构建后 HTML 里的资源路径，方便你在日志里检查对不对
-          echo "--- 检查打包路径 ---"
-          grep -o 'src="[^"]*"' dist/index.html | head -5
+          # 4. 打印 dist 目录内容，确认多页 HTML 是否打包成功
+          echo "--- 检查 dist 目录内容 ---"
+          ls -la dist/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
