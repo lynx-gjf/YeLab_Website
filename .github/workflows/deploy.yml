@@ -2,8 +2,8 @@ name: Deploy Vite App to GitHub Pages
 
 on:
   push:
-    branches: [ "1.3" ] # 监听你的 1.3 分支，提交代码时自动触发
-  workflow_dispatch: # 支持在 Actions 页面手动点击运行
+    branches: [ "1.3" ] 
+  workflow_dispatch: 
 
 permissions:
   contents: read
@@ -33,24 +33,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build project
-        run: npm run build
-
-      - name: Fix asset paths in index.html
+      - name: Build project (With Base Path)
         run: |
-          # 自动把构建后 /assets/ 开头的绝对路径替换为相对路径 ./assets/
-          sed -i 's|/assets/|./assets/|g' dist/index.html
-          # 如果项目存在多页（例如 publications.html, members.html），一并修正
-          for file in dist/*.html; do
-            if [ -f "$file" ]; then
-              sed -i 's|/assets/|./assets/|g' "$file"
-            fi
-          done
+          # 1. 强行指定 base 路径进行打包，让所有资源路径自动带上 /YeLab_Website/
+          npm run build -- --base=/YeLab_Website/
+          
+          # 2. 添加 .nojekyll 防止 GitHub 忽略下划线文件
+          touch dist/.nojekyll
+          
+          # 3. 复制一份 404.html，防止 Vue Router 刷新子页面报错
+          cp dist/index.html dist/404.html
+          
+          # 4. (可选) 打印出构建后 HTML 里的资源路径，方便你在日志里检查对不对
+          echo "--- 检查打包路径 ---"
+          grep -o 'src="[^"]*"' dist/index.html | head -5
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist' # 上传 Vite 打包产出的 dist 目录
+          path: './dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
