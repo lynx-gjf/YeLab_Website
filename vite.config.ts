@@ -9,4 +9,13 @@ export default defineConfig({
       bundler: 'vite',
     }),
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        members: 'members.html',
+        publications: 'publications.html',
+      },
+    },
+  },
 })
