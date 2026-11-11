@@ -10,8 +10,8 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/#about">About</a></li>
                 <li><a href="/#research">Research</a></li>
-                <li><a href="/members.html">Members</a></li>
-                <li><a href="/publications.html">Publications</a></li>
+                <li><a href="./members.html">Members</a></li>
+                <li><a href="./publications.html">Publications</a></li>       
                 <li><a href="/#contact">Contact</a></li>
             </ul>
         </nav>
