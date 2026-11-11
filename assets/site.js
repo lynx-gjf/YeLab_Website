@@ -193,26 +193,61 @@
   }
 
   /* ------------------------------------------------------------------
-     5. Publications year filter (publications.html only)
+     5. Publications filter: decade buttons + live search (publications.html)
      ------------------------------------------------------------------ */
   function initPubFilter() {
-    var toolbar = document.getElementById('pubToolbar');
-    if (!toolbar) return;
+    var blocks = [].slice.call(document.querySelectorAll('.year-block'));
+    if (!blocks.length) return;
 
-    var blocks = document.querySelectorAll('.year-block');
-    var buttons = toolbar.querySelectorAll('button');
+    var toolbar = document.getElementById('pubToolbar');
+    var buttons = toolbar ? [].slice.call(toolbar.querySelectorAll('[data-filter]')) : [];
+    var search = document.getElementById('pubSearch');
+    var countEl = document.getElementById('pubShown');
+    var totalEl = document.getElementById('pubTotal');
+    var noneEl = document.getElementById('pubNoResults');
+
+    var decade = 'all';
+    var query = '';
+
+    function apply() {
+      var shown = 0;
+      blocks.forEach(function (block) {
+        var inDecade = decade === 'all' || block.getAttribute('data-decade') === decade;
+        var visible = 0;
+        [].slice.call(block.querySelectorAll(':scope > ol > li')).forEach(function (li) {
+          var hit = inDecade && (!query || li.textContent.toLowerCase().indexOf(query) !== -1);
+          li.style.display = hit ? '' : 'none';
+          if (hit) visible++;
+        });
+        block.style.display = visible ? '' : 'none';
+        var tag = block.querySelector('.year-count');
+        if (tag) tag.textContent = visible;
+        shown += visible;
+      });
+
+      if (countEl) countEl.textContent = shown;
+      if (totalEl) {
+        var all = totalEl.getAttribute('data-total');
+        totalEl.textContent = String(shown) === String(all) ? '' : 'of ' + all;
+      }
+      if (noneEl) noneEl.style.display = shown ? 'none' : '';
+    }
 
     buttons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         buttons.forEach(function (b) { b.classList.remove('active'); });
         btn.classList.add('active');
-
-        var want = btn.getAttribute('data-year');
-        blocks.forEach(function (block) {
-          block.style.display = (want === 'all' || block.id === 'y' + want) ? '' : 'none';
-        });
+        decade = btn.getAttribute('data-filter');
+        apply();
       });
     });
+
+    if (search) {
+      search.addEventListener('input', function () {
+        query = search.value.trim().toLowerCase();
+        apply();
+      });
+    }
   }
 
   /* ------------------------------------------------------------------

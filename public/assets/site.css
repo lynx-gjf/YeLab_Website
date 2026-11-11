@@ -709,28 +709,53 @@ section { padding: 80px 0; }
     color: #999;
 }
 
+.year-block > h2 span .year-count {
+    font-style: normal;
+    font-weight: 600;
+    color: #0066cc;
+}
+
+/* Jump index above the list: one link per year that has papers */
+.pub-index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    justify-content: center;
+    max-width: 860px;
+    margin: 0 auto 30px;
+    font-size: 13.5px;
+}
+
+.pub-index a {
+    color: #0066cc;
+    text-decoration: none;
+    padding-bottom: 1px;
+}
+
+.pub-index a:hover { border-bottom: 1px solid #0066cc; }
+
 .pub-numbered {
     list-style: none;
-    counter-reset: pub;
 }
 
 .pub-numbered > li {
-    counter-increment: pub;
     position: relative;
-    padding: 16px 16px 16px 52px;
+    padding: 16px 16px 16px 56px;
     border-bottom: 1px solid #f0f0f0;
     font-size: 15px;
     color: #555;
 }
 
-.pub-numbered > li::before {
-    content: counter(pub) ".";
+/* Publication number is written into the HTML, so it survives filtering */
+.pub-numbered .pnum {
     position: absolute;
     left: 12px;
-    top: 16px;
+    top: 17px;
+    width: 34px;
     color: #0066cc;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13.5px;
+    text-align: right;
 }
 
 .pub-numbered > li:hover { background: #fafbfc; }
@@ -746,6 +771,64 @@ section { padding: 80px 0; }
     color: #0066cc;
     font-style: italic;
     font-weight: 600;
+}
+
+.pub-numbered .pdoi {
+    color: #999;
+    font-size: 13px;
+    text-decoration: none;
+    border-bottom: 1px dotted #ccc;
+}
+
+.pub-numbered .pdoi:hover { color: #0066cc; border-bottom-color: #0066cc; }
+
+.pub-numbered .ptype {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8a6d3b;
+    background: #fcf8e3;
+    border: 1px solid #f5e6c1;
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin-left: 8px;
+    vertical-align: 1px;
+}
+
+.sc { font-variant: small-caps; letter-spacing: 0.02em; }
+
+/* Search box next to the year filter */
+.pub-search {
+    flex: 1 1 220px;
+    min-width: 180px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.pub-search:focus { outline: none; border-color: #0066cc; }
+
+.pub-status {
+    font-size: 13.5px;
+    color: #888;
+    margin: 0 0 22px;
+}
+
+.pub-status strong { color: #0066cc; }
+
+.pub-no-results {
+    padding: 26px 16px;
+    color: #888;
+    font-size: 15px;
+    text-align: center;
+    border: 1px dashed #ddd;
+    border-radius: 8px;
 }
 
 /* --------------------------------------------------------------------------
