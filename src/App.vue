@@ -20,7 +20,7 @@ onMounted(() => {
     Publications: 'Publications — The Ye Group',
     ProfYe: 'Prof. Ye — The Ye Group',
   }
-  document.title = titles[page.value.name] ?? titles.Home
+  document.title = titles[page.value.name ?? 'Home'] ?? titles.Home
 })
 </script>
 
