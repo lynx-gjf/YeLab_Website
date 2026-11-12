@@ -10,9 +10,9 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="./prof-ye.html">Prof. Ye</a></li>
                 <li><a href="/#research">Research</a></li>
-                <li><a href="./members.html">Members</a></li>
-                <li><a href="./publications.html">Publications</a></li>       
-                <li><a href="/#contact">Contact</a></li>
+                <li><a href="/members.html">Members</a></li>
+                <li><a href="/publications.html">Publications</a></li>
+                <li><a href="/contact.html">Contact</a></li>
             </ul>
         </nav>
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">&#9776;</button>
@@ -170,28 +170,9 @@
 </section>
 
 <!-- ===================== Contact ===================== -->
-<section class="alt-bg" id="contact">
-    <h2 class="section-title">Contact Us</h2>
-    <div class="container">
-        <div class="contact-content reveal">
-            <div class="contact-info">
-                <h3>Contact Information</h3>
-                <p><strong>Address:</strong> Peking University Health Science Center, 38 Xueyuan Road, Beijing 100191, China</p>
-                <p><strong>Tel:</strong> +86-10-82805736</p>
-                <p><strong>Email:</strong> <a href="mailto:xinshan@bjmu.edu.cn">xinshan@bjmu.edu.cn</a></p>
-                <p><strong>Office:</strong> Medical Science and Technology Building, Peking University</p>
-            </div>
-            <div class="contact-info">
-                <h3>Related Links</h3>
-                <p><a href="https://sps.bjmu.edu.cn/" target="_blank" rel="noopener">School of Pharmaceutical Sciences, PKU</a></p>
-                <p><a href="https://www.bjmu.edu.cn/" target="_blank" rel="noopener">Peking University Health Science Center</a></p>
-                <p><a href="http://sklnbd.bjmu.edu.cn/" target="_blank" rel="noopener">State Key Laboratory of Natural and Biomimetic Drugs</a></p>
-            </div>
-        </div>
-    </div>
-</section>
 
 <footer>
+
     <div class="footer-content">
         <div class="footer-about">
             <h3>The Ye Group</h3>
@@ -207,7 +188,6 @@
                 <li><a href="/#research">Research Areas</a></li>
                 <li><a href="/members.html">Members</a></li>
                 <li><a href="/publications.html">Publications</a></li>
-                <li><a href="/#contact">Contact</a></li>
             </ul>
         </div>
     </div>

@@ -9,10 +9,10 @@
             <ul>
                 <li><a href="index.html">Home</a></li>
                 <li><a href="prof-ye.html">Prof. Ye</a></li>
-                <li><a href="index.html#research">Research Areas</a></li>
+                <li><a href="index.html#research">Research</a></li>
                 <li><a href="members.html">Members</a></li>
                 <li><a href="publications.html">Publications</a></li>
-                <li><a href="index.html#contact">Contact</a></li>
+                <li><a href="contact.html">Contact</a></li>
             </ul>
         </nav>
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">&#9776;</button>
@@ -1490,7 +1490,7 @@
                 <li><a href="index.html#research">Research Areas</a></li>
                 <li><a href="members.html">Members</a></li>
                 <li><a href="publications.html">Publications</a></li>
-                <li><a href="index.html#contact">Contact</a></li>
+                <li><a href="contact.html">Contact</a></li>
             </ul>
         </div>
     </div>

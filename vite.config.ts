@@ -16,6 +16,7 @@ export default defineConfig({
         members: 'members.html',
         publications: 'publications.html',
         profye: 'prof-ye.html',
+        contact: 'contact.html',
       },
     },
   },
