@@ -8,8 +8,8 @@
         <nav id="siteNav">
             <ul>
                 <li><a href="index.html">Home</a></li>
-                <li><a href="index.html#about">About</a></li>
-                <li><a href="index.html#research">Research</a></li>
+                <li><a href="prof-ye.html">Prof. Ye</a></li>
+                <li><a href="index.html#research">Research Areas</a></li>
                 <li><a href="members.html">Members</a></li>
                 <li><a href="publications.html">Publications</a></li>
                 <li><a href="index.html#contact">Contact</a></li>
@@ -1486,7 +1486,7 @@
             <h4>Navigate</h4>
             <ul>
                 <li><a href="index.html">Home</a></li>
-                <li><a href="index.html#about">About Prof. Ye</a></li>
+                <li><a href="prof-ye.html">Prof. Ye</a></li>
                 <li><a href="index.html#research">Research Areas</a></li>
                 <li><a href="members.html">Members</a></li>
                 <li><a href="publications.html">Publications</a></li>

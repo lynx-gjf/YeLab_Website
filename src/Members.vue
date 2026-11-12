@@ -8,7 +8,7 @@
         <nav id="siteNav">
             <ul>
                 <li><a href="index.html">Home</a></li>
-                <li><a href="index.html#about">About</a></li>
+                <li><a href="prof-ye.html">Prof. Ye</a></li>
                 <li><a href="index.html#research">Research</a></li>
                 <li><a href="members.html">Members</a></li>
                 <li><a href="publications.html">Publications</a></li>
@@ -52,7 +52,7 @@
                     </div>
                     <h3>Xinshan Ye</h3>
                     <p class="role">Professor / PI</p>
-                    <p class="years"><a href="/#about">Full profile &rarr;</a></p>
+                    <p class="years"><a href="/prof-ye.html">Full profile &rarr;</a></p>
                 </div>
             </div>
         </div>
@@ -189,7 +189,7 @@
             <h4>Navigate</h4>
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/#about">About Prof. Ye</a></li>
+                <li><a href="/prof-ye.html">Prof. Ye</a></li>
                 <li><a href="/#research">Research Areas</a></li>
                 <li><a href="/members.html">Members</a></li>
                 <li><a href="/publications.html">Publications</a></li>

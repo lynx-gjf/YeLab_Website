@@ -8,7 +8,7 @@
         <nav id="siteNav">
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/#about">About</a></li>
+                <li><a href="./prof-ye.html">Prof. Ye</a></li>
                 <li><a href="/#research">Research</a></li>
                 <li><a href="./members.html">Members</a></li>
                 <li><a href="./publications.html">Publications</a></li>       
@@ -120,48 +120,6 @@
     </div>
 </section>
 
-<!-- ===================== About ===================== -->
-<section class="alt-bg" id="about">
-    <h2 class="section-title">About Prof. Xinshan Ye</h2>
-    <div class="container">
-        <div class="about-content reveal">
-            <div class="about-image">
-                <img src="/assets/prof-ye.png" alt="Professor Xinshan Ye">
-            </div>
-            <div class="about-text">
-                <h3>Xinshan Ye, Ph.D.</h3>
-                <p>Professor and Doctoral Supervisor at the School of Pharmaceutical Sciences, Peking University. National Science Fund for Distinguished Young Scholars recipient. Yangtze River Scholar. Chief Scientist of the National Key Research and Development Program (973 Program). Fellow of the Chinese Chemical Society.</p>
-
-                <h4>Education</h4>
-                <ul>
-                    <li>1981&ndash;1985&nbsp; B.S., Department of Chemistry, Wuhan University</li>
-                    <li>1985&ndash;1988&nbsp; M.S., Department of Chemistry, Wuhan University</li>
-                    <li>1993&ndash;1996&nbsp; Ph.D., Department of Chemistry, The Chinese University of Hong Kong</li>
-                    <li>1996&ndash;2000&nbsp; Postdoctoral Research, The Scripps Research Institute, USA</li>
-                </ul>
-
-                <h4>Professional Experience</h4>
-                <ul>
-                    <li>1988&ndash;1993&nbsp; Lecturer, Huazhong Agricultural University</li>
-                    <li>2000&ndash;present&nbsp; Professor, School of Pharmaceutical Sciences, Peking University</li>
-                    <li>2005&ndash;2012&nbsp; Director, State Key Laboratory of Natural and Biomimetic Drugs</li>
-                    <li>2016&ndash;present&nbsp; Associate Dean, School of Pharmaceutical Sciences, Peking University</li>
-                </ul>
-
-                <h4>Honors &amp; Awards</h4>
-                <ul>
-                    <li>Second Prize of National Natural Science Award of China, 2013 (first contributor)</li>
-                    <li>First Prize of Chinese Pharmaceutical Association Science &amp; Technology Award, 2011</li>
-                    <li>Second Prize of Natural Science Award, Ministry of Education, 2010</li>
-                    <li>13th Wu Jieping&ndash;Paul Janssen Medical &amp; Pharmaceutical Award, 2012</li>
-                    <li>Zhang Shuzheng Glycoscience Award for Outstanding Achievement, 2015</li>
-                    <li>Weishan Award for Natural Product Synthetic Chemistry, 2017</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- ===================== Highlights (short list, links out) ===================== -->
 <section id="group-highlights">
     <h2 class="section-title">Highlights</h2>
@@ -245,7 +203,7 @@
             <h4>Navigate</h4>
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/#about">About Prof. Ye</a></li>
+                <li><a href="/prof-ye.html">Prof. Ye</a></li>
                 <li><a href="/#research">Research Areas</a></li>
                 <li><a href="/members.html">Members</a></li>
                 <li><a href="/publications.html">Publications</a></li>
