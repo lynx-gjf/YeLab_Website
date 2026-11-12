@@ -1,7 +1,7 @@
 <template>
 <header>
     <div class="header-inner">
-        <a href="/" class="logo">
+        <a href="index.html" class="logo">
             The Ye Group
             <small>Glycochemistry &amp; Glycopharmaceutical Research</small>
         </a>
