@@ -7,12 +7,12 @@
         </a>
         <nav id="siteNav">
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/#about">About</a></li>
-                <li><a href="/#research">Research</a></li>
-                <li><a href="/members.html">Members</a></li>
-                <li><a href="/publications.html">Publications</a></li>
-                <li><a href="/#contact">Contact</a></li>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#research">Research</a></li>
+                <li><a href="members.html">Members</a></li>
+                <li><a href="publications.html">Publications</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
             </ul>
         </nav>
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">&#9776;</button>
