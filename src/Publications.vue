@@ -2,7 +2,7 @@
 <header>
     <div class="header-inner">
         <a href="index.html" class="logo">
-            The Ye Group
+            Ye Group
             <small>Glycochemistry &amp; Glycopharmaceutical Research</small>
         </a>
         <nav id="siteNav">
