@@ -1,18 +1,19 @@
 <template>
 <header>
     <div class="header-inner">
-        <a href="/" class="logo">
+        <a href="index.html" class="logo">
             Ye Group
             <small>Glycochemistry &amp; Glycopharmaceutical Research</small>
         </a>
         <nav id="siteNav">
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="./prof-ye.html">Prof. Ye</a></li>
-                <li><a href="/#research">Research</a></li>
-                <li><a href="/members.html">Members</a></li>
-                <li><a href="/publications.html">Publications</a></li>
-                <li><a href="/contact.html">Contact</a></li>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="prof-ye.html">Prof. Ye</a></li>
+                <li><a href="index.html#research">Research</a></li>
+                <li><a href="members.html">Members</a></li>
+                <li><a href="publications.html">Publications</a></li>
+                <li><a href="contact.html">Contact</a></li>
+
             </ul>
         </nav>
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">&#9776;</button>
