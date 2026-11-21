@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>网站内容管理</title>
+  <style>
+    :root { color-scheme: light; --bg:#f5f7fb; --panel:#fff; --text:#172033; --muted:#697386; --line:#dfe4ec; --brand:#2457a6; --brand2:#173e7a; --danger:#b42318; --success:#067647; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); }
+    button,input,textarea,select { font:inherit; }
+    button { cursor:pointer; }
+    .login { min-height:100vh; display:grid; place-items:center; padding:24px; }
+    .login-card { width:min(420px,100%); background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:32px; box-shadow:0 12px 40px rgba(23,32,51,.08); }
+    .login-card h1 { margin:0 0 8px; font-size:26px; }
+    .login-card p { margin:0 0 24px; color:var(--muted); }
+    .field { display:grid; gap:7px; margin-bottom:16px; }
+    .field label { font-size:14px; font-weight:700; }
+    input,textarea,select { width:100%; border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:#fff; color:var(--text); }
+    textarea { min-height:250px; resize:vertical; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; line-height:1.55; }
+    .primary { border:0; border-radius:8px; background:var(--brand); color:#fff; padding:10px 16px; font-weight:700; }
+    .primary:hover { background:var(--brand2); }
+    .secondary,.danger { border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--text); padding:8px 12px; }
+    .danger { color:var(--danger); }
+    .shell { display:grid; grid-template-columns:220px minmax(0,1fr); min-height:100vh; }
+    .sidebar { background:#172033; color:#fff; padding:22px 14px; display:flex; flex-direction:column; }
+    .brand { padding:6px 10px 22px; font-size:18px; font-weight:800; }
+    .nav { display:grid; gap:4px; }
+    .nav button { text-align:left; border:0; background:transparent; color:#cbd5e1; border-radius:8px; padding:10px 12px; }
+    .nav button.active,.nav button:hover { background:#2b3a56; color:#fff; }
+    .sidebar-footer { margin-top:auto; display:grid; gap:10px; padding:10px; }
+    .sidebar-footer .user { color:#b9c4d6; font-size:13px; }
+    .sidebar-footer button { border:1px solid #44516a; color:#fff; background:transparent; border-radius:8px; padding:8px; }
+    main { padding:28px; min-width:0; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .topbar h1 { margin:0; font-size:24px; }
+    .panel { display:none; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; }
+    .panel.active { display:block; }
+    .panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .panel-head h2 { margin:0; font-size:18px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .list { display:grid; gap:10px; }
+    .item { border:1px solid var(--line); border-radius:10px; padding:14px; display:grid; gap:10px; }
+    .item-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .item-main { min-width:0; }
+    .item-main strong { display:block; }
+    .item-main small { color:var(--muted); }
+    .actions { display:flex; gap:8px; flex-shrink:0; }
+    .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .wide { grid-column:1/-1; }
+    .status { min-height:22px; color:var(--muted); font-size:14px; }
+    .status.error { color:var(--danger); }
+    .status.success { color:var(--success); }
+    .hidden { display:none !important; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(15,23,42,.48); padding:20px; display:grid; place-items:center; z-index:20; }
+    .modal { width:min(680px,100%); max-height:90vh; overflow:auto; background:#fff; border-radius:12px; padding:20px; }
+    .preview { max-width:160px; max-height:100px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
+    @media(max-width:760px) { .shell { grid-template-columns:1fr; } .sidebar { position:static; } .nav { grid-template-columns:repeat(2,1fr); } .sidebar-footer { margin-top:16px; } main { padding:16px; } .grid,.form-grid { grid-template-columns:1fr; } .wide { grid-column:auto; } }
+  </style>
+</head>
+<body>
+  <section id="loginView" class="login">
+    <form id="loginForm" class="login-card">
+      <h1>网站内容管理</h1>
+      <p>请使用管理员账号登录。</p>
+      <div class="field"><label for="username">用户名</label><input id="username" autocomplete="username" required></div>
+      <div class="field"><label for="password">密码</label><input id="password" type="password" autocomplete="current-password" required></div>
+      <button class="primary" type="submit">登录</button>
+      <div id="loginStatus" class="status"></div>
+    </form>
+  </section>
+
+  <section id="adminView" class="shell hidden">
+    <aside class="sidebar">
+      <div class="brand">The Ye Group</div>
+      <nav class="nav">
+        <button class="active" data-view="content">页面内容</button>
+        <button data-view="members">成员管理</button>
+        <button data-view="publications">论文管理</button>
+        <button data-view="media">图片上传</button>
+      </nav>
+      <div class="sidebar-footer">
+        <span id="currentUser" class="user"></span>
+        <button id="logoutButton">退出登录</button>
+      </div>
+    </aside>
+    <main>
+      <div class="topbar"><h1 id="pageTitle">页面内容</h1><a class="secondary" href="/" target="_blank" rel="noopener">查看网站</a></div>
+
+      <section class="panel active" id="contentPanel">
+        <div class="panel-head">
+          <h2>页面 JSON 内容</h2>
+          <select id="contentKey" aria-label="选择页面">
+            <option value="home">首页</option><option value="members">成员页</option>
+            <option value="publications">论文页</option><option value="prof-ye">教授介绍</option>
+            <option value="contact">联系方式</option>
+          </select>
+        </div>
+        <div class="field"><label for="contentJson">内容</label><textarea id="contentJson" spellcheck="false"></textarea></div>
+        <button id="saveContent" class="primary">保存页面内容</button>
+        <div id="contentStatus" class="status"></div>
+      </section>
+
+      <section class="panel" id="membersPanel">
+        <div class="panel-head"><h2>成员列表</h2><button id="addMember" class="primary">新增成员</button></div>
+        <div id="memberList" class="list"></div>
+      </section>
+
+      <section class="panel" id="publicationsPanel">
+        <div class="panel-head"><h2>论文列表</h2><button id="addPublication" class="primary">新增论文</button></div>
+        <div id="publicationList" class="list"></div>
+      </section>
+
+      <section class="panel" id="mediaPanel">
+        <div class="panel-head"><h2>图片上传</h2></div>
+        <div class="field"><label for="uploadFile">选择图片（JPEG、PNG、WebP 或 GIF，最大 10 MB）</label><input id="uploadFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
+        <button id="uploadButton" class="primary">上传图片</button>
+        <div id="uploadStatus" class="status"></div>
+      </section>
+    </main>
+  </section>
+
+  <div id="memberModal" class="modal-backdrop hidden">
+    <form id="memberForm" class="modal">
+      <div class="panel-head"><h2 id="memberModalTitle">新增成员</h2><button type="button" class="secondary" data-close="memberModal">关闭</button></div>
+      <input type="hidden" id="memberId">
+      <div class="form-grid">
+        <div class="field"><label for="memberName">姓名</label><input id="memberName" required></div>
+        <div class="field"><label for="memberRole">职称</label><input id="memberRole"></div>
+        <div class="field"><label for="memberYears">在组时间</label><input id="memberYears"></div>
+        <div class="field"><label for="memberGroup">分组</label><input id="memberGroup"></div>
+        <div class="field wide"><label for="memberPhoto">照片地址</label><input id="memberPhoto" placeholder="/uploads/xxx.jpg"></div>
+        <div class="field"><label for="memberOrder">排序</label><input id="memberOrder" type="number" value="0"></div>
+      </div>
+      <button class="primary" type="submit">保存成员</button><div id="memberStatus" class="status"></div>
+    </form>
+  </div>
+
+  <div id="publicationModal" class="modal-backdrop hidden">
+    <form id="publicationForm" class="modal">
+      <div class="panel-head"><h2 id="publicationModalTitle">新增论文</h2><button type="button" class="secondary" data-close="publicationModal">关闭</button></div>
+      <input type="hidden" id="publicationId">
+      <div class="form-grid">
+        <div class="field wide"><label for="publicationTitle">标题</label><input id="publicationTitle" required></div>
+        <div class="field wide"><label for="publicationAuthors">作者</label><textarea id="publicationAuthors" style="min-height:90px"></textarea></div>
+        <div class="field"><label for="publicationJournal">期刊</label><input id="publicationJournal"></div>
+        <div class="field"><label for="publicationYear">年份</label><input id="publicationYear" type="number"></div>
+        <div class="field wide"><label for="publicationDoi">DOI 地址</label><input id="publicationDoi"></div>
+        <div class="field"><label for="publicationCategory">类型</label><select id="publicationCategory"><option>article</option><option>review</option><option>chapter</option></select></div>
+        <div class="field"><label for="publicationOrder">排序</label><input id="publicationOrder" type="number" value="0"></div>
+      </div>
+      <button class="primary" type="submit">保存论文</button><div id="publicationStatus" class="status"></div>
+    </form>
+  </div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector)
+    const loginView = $('#loginView')
+    const adminView = $('#adminView')
+
+    function setStatus(element, message, type = '') {
+      element.textContent = message
+      element.className = `status${type ? ` ${type}` : ''}`
+    }
+
+    async function api(url, options = {}) {
+      const response = await fetch(url, { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } })
+      if (response.status === 204) return null
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data.error || `请求失败（${response.status}）`)
+      return data
+    }
+
+    async function checkAuth() {
+      try {
+        const me = await api('/api/auth/me')
+        if (me.authenticated) showAdmin(me.username)
+      } catch {
+        showLogin()
+      }
+    }
+
+    function showLogin() {
+      loginView.classList.remove('hidden')
+      adminView.classList.add('hidden')
+    }
+
+    function showAdmin(username) {
+      loginView.classList.add('hidden')
+      adminView.classList.remove('hidden')
+      $('#currentUser').textContent = `已登录：${username}`
+      loadContent()
+      loadMembers()
+      loadPublications()
+    }
+
+    $('#loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault()
+      const status = $('#loginStatus')
+      setStatus(status, '登录中…')
+      try {
+        const result = await api('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ username: $('#username').value.trim(), password: $('#password').value }),
+        })
+        showAdmin(result.username)
+      } catch (error) {
+        setStatus(status, error.message, 'error')
+      }
+    })
+
+    $('#logoutButton').addEventListener('click', async () => {
+      await api('/api/auth/logout', { method: 'POST', body: '{}' })
+      showLogin()
+    })
+
+    document.querySelectorAll('.nav button').forEach((button) => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.nav button').forEach((item) => item.classList.remove('active'))
+        button.classList.add('active')
+        document.querySelectorAll('.panel').forEach((panel) => panel.classList.remove('active'))
+        $(`#${button.dataset.view}Panel`).classList.add('active')
+        const names = { content:'页面内容', members:'成员管理', publications:'论文管理', media:'图片上传' }
+        $('#pageTitle').textContent = names[button.dataset.view]
+      })
+    })
+
+    async function loadContent() {
+      const key = $('#contentKey').value
+      const status = $('#contentStatus')
+      setStatus(status, '加载中…')
+      try {
+        const result = await api(`/api/content/${encodeURIComponent(key)}`)
+        $('#contentJson').value = JSON.stringify(result.value, null, 2)
+        setStatus(status, `更新时间：${result.updatedAt}`)
+      } catch (error) {
+        setStatus(status, error.message, 'error')
+      }
+    }
+
+    $('#contentKey').addEventListener('change', loadContent)
+    $('#saveContent').addEventListener('click', async () => {
+      const status = $('#contentStatus')
+      try {
+        const value = JSON.parse($('#contentJson').value)
+        await api(`/api/content/${encodeURIComponent($('#contentKey').value)}`, { method:'PUT', body:JSON.stringify({ value }) })
+        setStatus(status, '保存成功', 'success')
+      } catch (error) {
+        setStatus(status, error instanceof SyntaxError ? 'JSON 格式不正确' : error.message, 'error')
+      }
+    })
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;',
+      })[character])
+    }
+
+    async function loadMembers() {
+      const container = $('#memberList')
+      container.textContent = '加载中…'
+      try {
+        const members = await api('/api/members')
+        container.innerHTML = members.length ? '' : '<div class="status">暂无成员。</div>'
+        members.forEach((member) => {
+          const item = document.createElement('div')
+          item.className = 'item'
+          item.innerHTML = `<div class="item-row"><div class="item-main"><strong>${escapeHtml(member.name)}</strong><small>${escapeHtml(member.role)} · ${escapeHtml(member.group_name)} · ${escapeHtml(member.years)}</small></div><div class="actions"><button class="secondary" data-edit-member="${member.id}">编辑</button><button class="danger" data-delete-member="${member.id}">删除</button></div></div>`
+          container.appendChild(item)
+        })
+      } catch (error) {
+        container.textContent = error.message
+      }
+    }
+
+    function openMember(member = null) {
+      $('#memberModalTitle').textContent = member ? '编辑成员' : '新增成员'
+      $('#memberId').value = member?.id || ''
+      $('#memberName').value = member?.name || ''
+      $('#memberRole').value = member?.role || ''
+      $('#memberYears').value = member?.years || ''
+      $('#memberGroup').value = member?.group_name || ''
+      $('#memberPhoto').value = member?.photo_url || ''
+      $('#memberOrder').value = member?.sort_order || 0
+      setStatus($('#memberStatus'), '')
+      $('#memberModal').classList.remove('hidden')
+    }
+
+    $('#addMember').addEventListener('click', () => openMember())
+    $('#memberForm').addEventListener('submit', async (event) => {
+      event.preventDefault()
+      const id = $('#memberId').value
+      const payload = {
+        name: $('#memberName').value.trim(), role: $('#memberRole').value,
+        years: $('#memberYears').value, groupName: $('#memberGroup').value,
+        photoUrl: $('#memberPhoto').value, sortOrder: Number($('#memberOrder').value || 0),
+      }
+      try {
+        await api(id ? `/api/members/${id}` : '/api/members', { method:id ? 'PUT':'POST', body:JSON.stringify(payload) })
+        $('#memberModal').classList.add('hidden')
+        await loadMembers()
+      } catch (error) {
+        setStatus($('#memberStatus'), error.message, 'error')
+      }
+    })
+
+    $('#memberList').addEventListener('click', async (event) => {
+      const editButton = event.target.closest('[data-edit-member]')
+      const deleteButton = event.target.closest('[data-delete-member]')
+      if (editButton) {
+        const members = await api('/api/members')
+        openMember(members.find((member) => member.id === Number(editButton.dataset.editMember)))
+      }
+      if (deleteButton && confirm('确定删除该成员吗？')) {
+        await api(`/api/members/${deleteButton.dataset.deleteMember}`, { method:'DELETE' })
+        await loadMembers()
+      }
+    })
+
+    async function loadPublications() {
+      const container = $('#publicationList')
+      container.textContent = '加载中…'
+      try {
+        const publications = await api('/api/publications')
+        container.innerHTML = publications.length ? '' : '<div class="status">暂无论文。</div>'
+        publications.forEach((publication) => {
+          const item = document.createElement('div')
+          item.className = 'item'
+          item.innerHTML = `<div class="item-row"><div class="item-main"><strong>${escapeHtml(publication.title)}</strong><small>${escapeHtml(publication.year)} · ${escapeHtml(publication.journal)}</small></div><div class="actions"><button class="secondary" data-edit-publication="${publication.id}">编辑</button><button class="danger" data-delete-publication="${publication.id}">删除</button></div></div>`
+          container.appendChild(item)
+        })
+      } catch (error) {
+        container.textContent = error.message
+      }
+    }
+
+    function openPublication(publication = null) {
+      $('#publicationModalTitle').textContent = publication ? '编辑论文' : '新增论文'
+      $('#publicationId').value = publication?.id || ''
+      $('#publicationTitle').value = publication?.title || ''
+      $('#publicationAuthors').value = publication?.authors || ''
+      $('#publicationJournal').value = publication?.journal || ''
+      $('#publicationYear').value = publication?.year || ''
+      $('#publicationDoi').value = publication?.doi_url || ''
+      $('#publicationCategory').value = publication?.category || 'article'
+      $('#publicationOrder').value = publication?.sort_order || 0
+      setStatus($('#publicationStatus'), '')
+      $('#publicationModal').classList.remove('hidden')
+    }
+
+    $('#addPublication').addEventListener('click', () => openPublication())
+    $('#publicationForm').addEventListener('submit', async (event) => {
+      event.preventDefault()
+      const id = $('#publicationId').value
+      const payload = {
+        title: $('#publicationTitle').value.trim(), authors: $('#publicationAuthors').value,
+        journal: $('#publicationJournal').value, year: $('#publicationYear').value ? Number($('#publicationYear').value) : null,
+        doiUrl: $('#publicationDoi').value, category: $('#publicationCategory').value,
+        sortOrder: Number($('#publicationOrder').value || 0),
+      }
+      try {
+        await api(id ? `/api/publications/${id}` : '/api/publications', { method:id ? 'PUT':'POST', body:JSON.stringify(payload) })
+        $('#publicationModal').classList.add('hidden')
+        await loadPublications()
+      } catch (error) {
+        setStatus($('#publicationStatus'), error.message, 'error')
+      }
+    })
+
+    $('#publicationList').addEventListener('click', async (event) => {
+      const editButton = event.target.closest('[data-edit-publication]')
+      const deleteButton = event.target.closest('[data-delete-publication]')
+      if (editButton) {
+        const publications = await api('/api/publications')
+        openPublication(publications.find((publication) => publication.id === Number(editButton.dataset.editPublication)))
+      }
+      if (deleteButton && confirm('确定删除该论文吗？')) {
+        await api(`/api/publications/${deleteButton.dataset.deletePublication}`, { method:'DELETE' })
+        await loadPublications()
+      }
+    })
+
+    document.querySelectorAll('[data-close]').forEach((button) => {
+      button.addEventListener('click', () => $(`#${button.dataset.close}`).classList.add('hidden'))
+    })
+
+    $('#uploadButton').addEventListener('click', async () => {
+      const file = $('#uploadFile').files[0]
+      const status = $('#uploadStatus')
+      if (!file) return setStatus(status, '请先选择图片', 'error')
+      setStatus(status, '上传中…')
+      const form = new FormData()
+      form.append('file', file)
+      try {
+        const response = await fetch('/api/uploads', { method:'POST', body:form })
+        const result = await response.json()
+        if (!response.ok) throw new Error(result.error || '上传失败')
+        setStatus(status, `上传成功：${result.url}`, 'success')
+      } catch (error) {
+        setStatus(status, error.message, 'error')
+      }
+    })
+
+    checkAuth()
+  </script>
+</body>
+</html>
