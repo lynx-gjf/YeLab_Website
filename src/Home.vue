@@ -1,3 +1,27 @@
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { fetchJson, mediaUrl } from './api'
+
+interface NewsItem {
+  id: number
+  title: string
+  summary: string
+  image_url: string
+  link_url: string
+  published_at: string | null
+}
+
+const newsItems = ref<NewsItem[]>([])
+
+onMounted(async () => {
+  try {
+    newsItems.value = (await fetchJson<NewsItem[]>('/api/news')).slice(0, 6)
+  } catch {
+    newsItems.value = []
+  }
+})
+</script>
+
 <template>
 <header>
     <div class="header-inner">
@@ -117,6 +141,23 @@
                 <h3>Chemical Glycobiology</h3>
                 <p>Exploring the roles of glycans in biological processes using chemical tools, including glycosidase and glycosyltransferase inhibitors and glycan-based probes.</p>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== News ===================== -->
+<section v-if="newsItems.length" id="news">
+    <h2 class="section-title">News</h2>
+    <p class="section-lead">Latest updates from the Ye Group</p>
+    <div class="container">
+        <div class="pub-list">
+            <article v-for="item in newsItems" :key="item.id" class="pub-item reveal is-visible">
+                <img v-if="item.image_url" :src="mediaUrl(item.image_url)" :alt="item.title" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px;">
+                <span v-if="item.published_at" class="pub-year">{{ item.published_at.slice(0, 10) }}</span>
+                <h4>{{ item.title }}</h4>
+                <p v-if="item.summary" class="meta">{{ item.summary }}</p>
+                <a v-if="item.link_url" :href="item.link_url" target="_blank" rel="noopener" class="btn ghost">Read More</a>
+            </article>
         </div>
     </div>
 </section>

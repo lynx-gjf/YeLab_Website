@@ -16,6 +16,17 @@ const databaseFile = path.join(dataDir, 'website.sqlite')
 fs.mkdirSync(dataDir, { recursive: true })
 fs.mkdirSync(uploadsDir, { recursive: true })
 
+const publicAssetsDir = path.join(rootDir, 'public', 'assets')
+if (fs.existsSync(publicAssetsDir)) {
+  for (const name of fs.readdirSync(publicAssetsDir)) {
+    const source = path.join(publicAssetsDir, name)
+    const target = path.join(uploadsDir, name)
+    if (fs.statSync(source).isFile() && !fs.existsSync(target)) {
+      fs.copyFileSync(source, target)
+    }
+  }
+}
+
 const db = new DatabaseSync(databaseFile)
 db.exec(`
   PRAGMA foreign_keys = ON;
@@ -54,6 +65,20 @@ db.exec(`
     year INTEGER,
     doi_url TEXT NOT NULL DEFAULT '',
     category TEXT NOT NULL DEFAULT 'article',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS news (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL DEFAULT '',
+    content TEXT NOT NULL DEFAULT '',
+    image_url TEXT NOT NULL DEFAULT '',
+    link_url TEXT NOT NULL DEFAULT '',
+    published_at TEXT,
+    published INTEGER NOT NULL DEFAULT 1,
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -109,9 +134,97 @@ for (const [key, value] of Object.entries(defaultContent)) {
   contentInsert.run(key, JSON.stringify(value))
 }
 
+function decodeHtml(value) {
+  return value
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&hellip;/g, '...')
+    .replace(/&mdash;/g, '—')
+    .replace(/&middot;/g, '·')
+    .replace(/&rsquo;/g, "'")
+    .replace(/&ldquo;/g, '"')
+    .replace(/&rdquo;/g, '"')
+    .replace(/&ndash;/g, '–')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#039;/g, "'")
+    .replace(/&quot;/g, '"')
+}
+
+function seedPublicationsFromVue() {
+  const existingCount = db.prepare('SELECT COUNT(*) AS count FROM publications').get().count
+  if (existingCount >= 150) return
+  const vueFile = path.join(rootDir, 'src', 'Publications.vue')
+  if (!fs.existsSync(vueFile)) return
+  const source = fs.readFileSync(vueFile, 'utf8')
+  const blocks = [...source.matchAll(/<div class="year-block[^"]*" id="y(\d{4})"[^>]*>([\s\S]*?)<\/ol>\s*<\/div>/g)]
+  const insert = db.prepare(`
+    INSERT INTO publications (title, authors, journal, year, doi_url, category, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `)
+  let imported = 0
+  if (existingCount > 0) db.prepare('DELETE FROM publications').run()
+  for (const block of blocks) {
+    const year = Number(block[1])
+    const body = block[2]
+    const items = [...body.matchAll(/<li>([\s\S]*?)<\/li>/g)]
+    items.forEach((item, index) => {
+      const html = item[1]
+      const titleMatch = html.match(/<span class="ptitle">(.*?)<\/span>/s)
+      const journalMatch = html.match(/<span class="pj">(.*?)<\/span>/s)
+      const doiMatch = html.match(/<a class="pdoi" href="([^"]+)"/)
+      if (!titleMatch) return
+      const title = decodeHtml(titleMatch[1]).trim()
+      const journal = decodeHtml(journalMatch?.[1] || '').trim()
+      const authorsHtml = html
+        .replace(titleMatch[0], '')
+        .replace(journalMatch?.[0] || '', '')
+        .replace(/<span class="pnum">.*?<\/span>/s, '')
+      const authors = decodeHtml(authorsHtml)
+        .replace(/<br>\s*/gi, ' ')
+        .replace(/DOI.*/gi, '')
+        .replace(/\s+/g, ' ')
+        .replace(/^,\s*/, '')
+        .trim()
+      insert.run(title, authors, journal, year, doiMatch?.[1] || '', 'article', index)
+      imported += 1
+    })
+  }
+  if (imported > 0) console.log(`[migration] Imported ${imported} publications into SQLite`)
+}
+
+seedPublicationsFromVue()
+
+if (db.prepare('SELECT COUNT(*) AS count FROM members').get().count === 0) {
+  db.prepare(`
+    INSERT INTO members (name, role, years, group_name, photo_url, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(
+    'Xinshan Ye',
+    'Professor / PI',
+    '',
+    'Principal Investigator',
+    '/uploads/prof-ye.png',
+    0,
+  )
+}
+
 const app = express()
 app.disable('x-powered-by')
 app.use(express.json({ limit: '2mb' }))
+app.use((req, res, next) => {
+  const allowedOrigin = process.env.PUBLIC_ORIGIN
+  if (allowedOrigin && req.headers.origin && req.headers.origin === allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin)
+    res.setHeader('Vary', 'Origin')
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+  }
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+  if (req.method === 'OPTIONS') return res.sendStatus(204)
+  next()
+})
 app.use('/uploads', express.static(uploadsDir, {
   immutable: true,
   maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
@@ -361,6 +474,67 @@ app.delete('/api/publications/:id', requireAuth, (req, res) => {
   res.status(204).end()
 })
 
+app.get('/api/news', (req, res) => {
+  const includeUnpublished = getSession(req) !== null
+  const rows = includeUnpublished
+    ? db.prepare('SELECT * FROM news ORDER BY published_at DESC, sort_order, id DESC').all()
+    : db.prepare("SELECT * FROM news WHERE published = 1 ORDER BY published_at DESC, sort_order, id DESC").all()
+  res.json(rows)
+})
+
+app.post('/api/news', requireAuth, (req, res) => {
+  const title = typeof req.body?.title === 'string' ? req.body.title.trim() : ''
+  if (!title) return res.status(400).json({ error: 'News title is required' })
+  const result = db.prepare(`
+    INSERT INTO news (title, summary, content, image_url, link_url, published_at, published, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    title,
+    String(req.body.summary || ''),
+    String(req.body.content || ''),
+    String(req.body.imageUrl || req.body.image_url || ''),
+    String(req.body.linkUrl || req.body.link_url || ''),
+    req.body.publishedAt || req.body.published_at || null,
+    req.body.published === false ? 0 : 1,
+    Number.isFinite(Number(req.body.sortOrder ?? req.body.sort_order)) ? Number(req.body.sortOrder ?? req.body.sort_order) : 0,
+  )
+  res.status(201).json(db.prepare('SELECT * FROM news WHERE id = ?').get(result.lastInsertRowid))
+})
+
+app.put('/api/news/:id', requireAuth, (req, res) => {
+  const id = Number(req.params.id)
+  const existing = db.prepare('SELECT * FROM news WHERE id = ?').get(id)
+  if (!existing) return res.status(404).json({ error: 'News not found' })
+  const title = typeof req.body?.title === 'string' ? req.body.title.trim() : existing.title
+  if (!title) return res.status(400).json({ error: 'News title is required' })
+  db.prepare(`
+    UPDATE news SET
+      title = ?, summary = ?, content = ?, image_url = ?, link_url = ?, published_at = ?,
+      published = ?, sort_order = ?, updated_at = datetime('now')
+    WHERE id = ?
+  `).run(
+    title,
+    String(req.body.summary ?? existing.summary),
+    String(req.body.content ?? existing.content),
+    String(req.body.imageUrl ?? req.body.image_url ?? existing.image_url),
+    String(req.body.linkUrl ?? req.body.link_url ?? existing.link_url),
+    req.body.publishedAt ?? req.body.published_at ?? existing.published_at,
+    req.body.published === undefined ? existing.published : (req.body.published ? 1 : 0),
+    Number.isFinite(Number(req.body.sortOrder ?? req.body.sort_order ?? existing.sort_order))
+      ? Number(req.body.sortOrder ?? req.body.sort_order ?? existing.sort_order)
+      : existing.sort_order,
+    id,
+  )
+  res.json(db.prepare('SELECT * FROM news WHERE id = ?').get(id))
+})
+
+app.delete('/api/news/:id', requireAuth, (req, res) => {
+  const id = Number(req.params.id)
+  const result = db.prepare('DELETE FROM news WHERE id = ?').run(id)
+  if (result.changes === 0) return res.status(404).json({ error: 'News not found' })
+  res.status(204).end()
+})
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: uploadsDir,
@@ -385,6 +559,34 @@ app.post('/api/uploads', requireAuth, upload.single('file'), (req, res) => {
     filename: req.file.filename,
     size: req.file.size,
   })
+})
+
+app.get('/api/media', requireAuth, (_req, res) => {
+  const files = fs.readdirSync(uploadsDir)
+    .filter(name => name !== '.gitkeep')
+    .map(name => {
+      const file = path.join(uploadsDir, name)
+      const stats = fs.statSync(file)
+      return {
+        filename: name,
+        url: `/uploads/${name}`,
+        size: stats.size,
+        modifiedAt: stats.mtime.toISOString(),
+      }
+    })
+    .filter(file => !fs.statSync(path.join(uploadsDir, file.filename)).isDirectory())
+    .sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
+  res.json(files)
+})
+
+app.delete('/api/media/:filename', requireAuth, (req, res) => {
+  const filename = path.basename(req.params.filename)
+  const file = path.join(uploadsDir, filename)
+  if (!filename || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+    return res.status(404).json({ error: 'Media file not found' })
+  }
+  fs.unlinkSync(file)
+  res.status(204).end()
 })
 
 app.get('/admin', (_req, res) => {

@@ -77,6 +77,7 @@
         <button class="active" data-view="content">页面内容</button>
         <button data-view="members">成员管理</button>
         <button data-view="publications">论文管理</button>
+        <button data-view="news">新闻管理</button>
         <button data-view="media">图片上传</button>
       </nav>
       <div class="sidebar-footer">
@@ -111,11 +112,17 @@
         <div id="publicationList" class="list"></div>
       </section>
 
+      <section class="panel" id="newsPanel">
+        <div class="panel-head"><h2>新闻列表</h2><button id="addNews" class="primary">新增新闻</button></div>
+        <div id="newsList" class="list"></div>
+      </section>
+
       <section class="panel" id="mediaPanel">
         <div class="panel-head"><h2>图片上传</h2></div>
         <div class="field"><label for="uploadFile">选择图片（JPEG、PNG、WebP 或 GIF，最大 10 MB）</label><input id="uploadFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
         <button id="uploadButton" class="primary">上传图片</button>
         <div id="uploadStatus" class="status"></div>
+        <div id="mediaList" class="list" style="margin-top:16px"></div>
       </section>
     </main>
   </section>
@@ -148,6 +155,24 @@
         <div class="field wide"><label for="publicationDoi">DOI 地址</label><input id="publicationDoi"></div>
         <div class="field"><label for="publicationCategory">类型</label><select id="publicationCategory"><option>article</option><option>review</option><option>chapter</option></select></div>
         <div class="field"><label for="publicationOrder">排序</label><input id="publicationOrder" type="number" value="0"></div>
+      </div>
+
+      <div id="newsModal" class="modal-backdrop hidden">
+        <form id="newsForm" class="modal">
+          <div class="panel-head"><h2 id="newsModalTitle">新增新闻</h2><button type="button" class="secondary" data-close="newsModal">关闭</button></div>
+          <input type="hidden" id="newsId">
+          <div class="form-grid">
+            <div class="field wide"><label for="newsTitle">标题</label><input id="newsTitle" required></div>
+            <div class="field wide"><label for="newsSummary">摘要</label><textarea id="newsSummary" style="min-height:90px"></textarea></div>
+            <div class="field wide"><label for="newsContent">正文</label><textarea id="newsContent" style="min-height:160px"></textarea></div>
+            <div class="field wide"><label for="newsImage">图片地址</label><input id="newsImage" placeholder="/uploads/xxx.jpg"></div>
+            <div class="field wide"><label for="newsLink">外部链接</label><input id="newsLink"></div>
+            <div class="field"><label for="newsDate">发布日期</label><input id="newsDate" type="datetime-local"></div>
+            <div class="field"><label for="newsPublished">状态</label><select id="newsPublished"><option value="1">已发布</option><option value="0">草稿</option></select></div>
+            <div class="field"><label for="newsOrder">排序</label><input id="newsOrder" type="number" value="0"></div>
+          </div>
+          <button class="primary" type="submit">保存新闻</button><div id="newsStatus" class="status"></div>
+        </form>
       </div>
       <button class="primary" type="submit">保存论文</button><div id="publicationStatus" class="status"></div>
     </form>
@@ -192,6 +217,8 @@
       loadContent()
       loadMembers()
       loadPublications()
+      loadNews()
+      loadMedia()
     }
 
     $('#loginForm').addEventListener('submit', async (event) => {
@@ -220,7 +247,7 @@
         button.classList.add('active')
         document.querySelectorAll('.panel').forEach((panel) => panel.classList.remove('active'))
         $(`#${button.dataset.view}Panel`).classList.add('active')
-        const names = { content:'页面内容', members:'成员管理', publications:'论文管理', media:'图片上传' }
+        const names = { content:'页面内容', members:'成员管理', publications:'论文管理', news:'新闻管理', media:'图片上传' }
         $('#pageTitle').textContent = names[button.dataset.view]
       })
     })
@@ -380,6 +407,75 @@
       }
     })
 
+    async function loadNews() {
+      const container = $('#newsList')
+      container.textContent = '加载中…'
+      try {
+        const news = await api('/api/news')
+        container.innerHTML = news.length ? '' : '<div class="status">暂无新闻。</div>'
+        news.forEach((item) => {
+          const row = document.createElement('div')
+          row.className = 'item'
+          row.innerHTML = `<div class="item-row"><div class="item-main"><strong>${escapeHtml(item.title)}</strong><small>${item.published ? '已发布' : '草稿'} · ${escapeHtml(item.published_at ? item.published_at.slice(0, 10) : '未设置日期')}</small></div><div class="actions"><button class="secondary" data-edit-news="${item.id}">编辑</button><button class="danger" data-delete-news="${item.id}">删除</button></div></div>`
+          container.appendChild(row)
+        })
+      } catch (error) {
+        container.textContent = error.message
+      }
+    }
+
+    function openNews(item = null) {
+      $('#newsModalTitle').textContent = item ? '编辑新闻' : '新增新闻'
+      $('#newsId').value = item?.id || ''
+      $('#newsTitle').value = item?.title || ''
+      $('#newsSummary').value = item?.summary || ''
+      $('#newsContent').value = item?.content || ''
+      $('#newsImage').value = item?.image_url || ''
+      $('#newsLink').value = item?.link_url || ''
+      $('#newsDate').value = item?.published_at ? item.published_at.slice(0, 16).replace(' ', 'T') : ''
+      $('#newsPublished').value = item ? String(item.published) : '1'
+      $('#newsOrder').value = item?.sort_order || 0
+      setStatus($('#newsStatus'), '')
+      $('#newsModal').classList.remove('hidden')
+    }
+
+    $('#addNews').addEventListener('click', () => openNews())
+    $('#newsForm').addEventListener('submit', async (event) => {
+      event.preventDefault()
+      const id = $('#newsId').value
+      const dateValue = $('#newsDate').value
+      const payload = {
+        title: $('#newsTitle').value.trim(),
+        summary: $('#newsSummary').value,
+        content: $('#newsContent').value,
+        imageUrl: $('#newsImage').value,
+        linkUrl: $('#newsLink').value,
+        publishedAt: dateValue ? dateValue.replace('T', ' ') + ':00' : null,
+        published: $('#newsPublished').value === '1',
+        sortOrder: Number($('#newsOrder').value || 0),
+      }
+      try {
+        await api(id ? `/api/news/${id}` : '/api/news', { method:id ? 'PUT':'POST', body:JSON.stringify(payload) })
+        $('#newsModal').classList.add('hidden')
+        await loadNews()
+      } catch (error) {
+        setStatus($('#newsStatus'), error.message, 'error')
+      }
+    })
+
+    $('#newsList').addEventListener('click', async (event) => {
+      const editButton = event.target.closest('[data-edit-news]')
+      const deleteButton = event.target.closest('[data-delete-news]')
+      if (editButton) {
+        const news = await api('/api/news')
+        openNews(news.find((item) => item.id === Number(editButton.dataset.editNews)))
+      }
+      if (deleteButton && confirm('确定删除该新闻吗？')) {
+        await api(`/api/news/${deleteButton.dataset.deleteNews}`, { method:'DELETE' })
+        await loadNews()
+      }
+    })
+
     document.querySelectorAll('[data-close]').forEach((button) => {
       button.addEventListener('click', () => $(`#${button.dataset.close}`).classList.add('hidden'))
     })
@@ -396,8 +492,38 @@
         const result = await response.json()
         if (!response.ok) throw new Error(result.error || '上传失败')
         setStatus(status, `上传成功：${result.url}`, 'success')
+        await loadMedia()
       } catch (error) {
         setStatus(status, error.message, 'error')
+      }
+    })
+
+    async function loadMedia() {
+      const container = $('#mediaList')
+      try {
+        const media = await api('/api/media')
+        container.innerHTML = media.length ? '' : '<div class="status">暂无图片。</div>'
+        media.forEach((item) => {
+          const row = document.createElement('div')
+          row.className = 'item'
+          row.innerHTML = `<div class="item-row"><div class="item-main"><strong>${escapeHtml(item.filename)}</strong><small>${escapeHtml(item.url)} · ${Math.round(item.size / 1024)} KB</small></div><div class="actions"><button class="secondary" data-copy-media="${escapeHtml(item.url)}">复制地址</button><button class="danger" data-delete-media="${escapeHtml(item.filename)}">删除</button></div></div>`
+          container.appendChild(row)
+        })
+      } catch (error) {
+        container.textContent = error.message
+      }
+    }
+
+    $('#mediaList').addEventListener('click', async (event) => {
+      const copyButton = event.target.closest('[data-copy-media]')
+      const deleteButton = event.target.closest('[data-delete-media]')
+      if (copyButton) {
+        await navigator.clipboard.writeText(copyButton.dataset.copyMedia)
+        setStatus($('#uploadStatus'), '图片地址已复制', 'success')
+      }
+      if (deleteButton && confirm('确定删除该图片吗？')) {
+        await api(`/api/media/${encodeURIComponent(deleteButton.dataset.deleteMedia)}`, { method:'DELETE' })
+        await loadMedia()
       }
     })
 

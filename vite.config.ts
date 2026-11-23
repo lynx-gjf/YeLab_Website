@@ -9,6 +9,12 @@ export default defineConfig({
       bundler: 'vite',
     }),
   ],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+      '/uploads': 'http://localhost:3000',
+    },
+  },
   build: {
     rollupOptions: {
       input: {
