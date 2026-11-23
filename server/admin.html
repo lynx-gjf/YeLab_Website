@@ -137,6 +137,14 @@
         <div class="field"><label for="memberYears">在组时间</label><input id="memberYears"></div>
         <div class="field"><label for="memberGroup">分组</label><input id="memberGroup"></div>
         <div class="field wide"><label for="memberPhoto">照片地址</label><input id="memberPhoto" placeholder="/uploads/xxx.jpg"></div>
+        <div class="field"><label for="memberGender">性别</label><input id="memberGender"></div>
+        <div class="field"><label for="memberBirth">出生信息</label><input id="memberBirth"></div>
+        <div class="field"><label for="memberNationality">国籍</label><input id="memberNationality"></div>
+        <div class="field"><label for="memberAddress">地址</label><input id="memberAddress"></div>
+        <div class="field wide"><label for="memberEmail">邮箱</label><input id="memberEmail"></div>
+        <div class="field wide"><label for="memberEducation">教育经历（每行一条）</label><textarea id="memberEducation" style="min-height:110px"></textarea></div>
+        <div class="field wide"><label for="memberBiography">个人简介（每行一段）</label><textarea id="memberBiography" style="min-height:110px"></textarea></div>
+        <div class="field wide"><label for="memberPublications">论文（每行一条）</label><textarea id="memberPublications" style="min-height:110px"></textarea></div>
         <div class="field"><label for="memberOrder">排序</label><input id="memberOrder" type="number" value="0"></div>
       </div>
       <button class="primary" type="submit">保存成员</button><div id="memberStatus" class="status"></div>
@@ -308,6 +316,14 @@
       $('#memberYears').value = member?.years || ''
       $('#memberGroup').value = member?.group_name || ''
       $('#memberPhoto').value = member?.photo_url || ''
+      $('#memberGender').value = member?.gender || ''
+      $('#memberBirth').value = member?.birth_info || ''
+      $('#memberNationality').value = member?.nationality || ''
+      $('#memberAddress').value = member?.address || ''
+      $('#memberEmail').value = member?.email || ''
+      $('#memberEducation').value = member?.education || ''
+      $('#memberBiography').value = member?.biography || ''
+      $('#memberPublications').value = member?.publications || ''
       $('#memberOrder').value = member?.sort_order || 0
       setStatus($('#memberStatus'), '')
       $('#memberModal').classList.remove('hidden')
@@ -320,7 +336,12 @@
       const payload = {
         name: $('#memberName').value.trim(), role: $('#memberRole').value,
         years: $('#memberYears').value, groupName: $('#memberGroup').value,
-        photoUrl: $('#memberPhoto').value, sortOrder: Number($('#memberOrder').value || 0),
+        photoUrl: $('#memberPhoto').value, gender: $('#memberGender').value,
+        birthInfo: $('#memberBirth').value, nationality: $('#memberNationality').value,
+        address: $('#memberAddress').value, email: $('#memberEmail').value,
+        education: $('#memberEducation').value, biography: $('#memberBiography').value,
+        publications: $('#memberPublications').value,
+        sortOrder: Number($('#memberOrder').value || 0),
       }
       try {
         await api(id ? `/api/members/${id}` : '/api/members', { method:id ? 'PUT':'POST', body:JSON.stringify(payload) })

@@ -5,6 +5,7 @@ import Members from './Members.vue'
 import Publications from './Publications.vue'
 import ProfYe from './ProfYe.vue'
 import Contact from './Contact.vue'
+import News from './News.vue'
 
 const page = computed(() => {
   const path = window.location.pathname
@@ -12,6 +13,7 @@ const page = computed(() => {
   if (path.endsWith('/publications.html') || path.endsWith('/publications')) return Publications
   if (path.endsWith('/prof-ye.html') || path.endsWith('/prof-ye')) return ProfYe
   if (path.endsWith('/contact.html') || path.endsWith('/contact')) return Contact
+  if (path.endsWith('/news.html') || path.endsWith('/news')) return News
   return Home
 })
 
@@ -22,6 +24,7 @@ onMounted(() => {
     Publications: 'Publications — The Ye Group',
     ProfYe: 'Prof. Ye — The Ye Group',
     Contact: 'Contact — The Ye Group',
+    News: 'News — The Ye Group',
   }
   document.title = titles[page.value.name ?? 'Home'] ?? titles.Home
 })

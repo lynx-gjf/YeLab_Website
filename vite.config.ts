@@ -23,6 +23,7 @@ export default defineConfig({
         publications: 'publications.html',
         profye: 'prof-ye.html',
         contact: 'contact.html',
+        news: 'news.html',
       },
     },
   },

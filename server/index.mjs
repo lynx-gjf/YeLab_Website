@@ -52,6 +52,14 @@ db.exec(`
     years TEXT NOT NULL DEFAULT '',
     group_name TEXT NOT NULL DEFAULT '',
     photo_url TEXT NOT NULL DEFAULT '',
+    gender TEXT NOT NULL DEFAULT '',
+    birth_info TEXT NOT NULL DEFAULT '',
+    nationality TEXT NOT NULL DEFAULT '',
+    address TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
+    education TEXT NOT NULL DEFAULT '',
+    biography TEXT NOT NULL DEFAULT '',
+    publications TEXT NOT NULL DEFAULT '',
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -84,6 +92,21 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `)
+
+const memberColumns = db.prepare('PRAGMA table_info(members)').all().map(column => column.name)
+const memberColumnDefinitions = {
+  gender: "TEXT NOT NULL DEFAULT ''",
+  birth_info: "TEXT NOT NULL DEFAULT ''",
+  nationality: "TEXT NOT NULL DEFAULT ''",
+  address: "TEXT NOT NULL DEFAULT ''",
+  email: "TEXT NOT NULL DEFAULT ''",
+  education: "TEXT NOT NULL DEFAULT ''",
+  biography: "TEXT NOT NULL DEFAULT ''",
+  publications: "TEXT NOT NULL DEFAULT ''",
+}
+for (const [name, definition] of Object.entries(memberColumnDefinitions)) {
+  if (!memberColumns.includes(name)) db.exec(`ALTER TABLE members ADD COLUMN ${name} ${definition}`)
+}
 
 const secretFile = path.join(dataDir, 'session.secret')
 let sessionSecret = process.env.SESSION_SECRET
@@ -368,14 +391,25 @@ app.post('/api/members', requireAuth, (req, res) => {
   const name = typeof req.body?.name === 'string' ? req.body.name.trim() : ''
   if (!name) return res.status(400).json({ error: 'Member name is required' })
   const result = db.prepare(`
-    INSERT INTO members (name, role, years, group_name, photo_url, sort_order)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO members (
+      name, role, years, group_name, photo_url, gender, birth_info, nationality,
+      address, email, education, biography, publications, sort_order
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     name,
     String(req.body.role || ''),
     String(req.body.years || ''),
     String(req.body.groupName || req.body.group_name || ''),
     String(req.body.photoUrl || req.body.photo_url || ''),
+    String(req.body.gender || ''),
+    String(req.body.birthInfo || req.body.birth_info || ''),
+    String(req.body.nationality || ''),
+    String(req.body.address || ''),
+    String(req.body.email || ''),
+    String(req.body.education || ''),
+    String(req.body.biography || ''),
+    String(req.body.publications || ''),
     Number.isFinite(Number(req.body.sortOrder ?? req.body.sort_order)) ? Number(req.body.sortOrder ?? req.body.sort_order) : 0,
   )
   res.status(201).json(db.prepare('SELECT * FROM members WHERE id = ?').get(result.lastInsertRowid))
@@ -394,6 +428,14 @@ app.put('/api/members/:id', requireAuth, (req, res) => {
       years = ?,
       group_name = ?,
       photo_url = ?,
+      gender = ?,
+      birth_info = ?,
+      nationality = ?,
+      address = ?,
+      email = ?,
+      education = ?,
+      biography = ?,
+      publications = ?,
       sort_order = ?,
       updated_at = datetime('now')
     WHERE id = ?
@@ -403,6 +445,14 @@ app.put('/api/members/:id', requireAuth, (req, res) => {
     String(req.body.years ?? existing.years),
     String(req.body.groupName ?? req.body.group_name ?? existing.group_name),
     String(req.body.photoUrl ?? req.body.photo_url ?? existing.photo_url),
+    String(req.body.gender ?? existing.gender),
+    String(req.body.birthInfo ?? req.body.birth_info ?? existing.birth_info),
+    String(req.body.nationality ?? existing.nationality),
+    String(req.body.address ?? existing.address),
+    String(req.body.email ?? existing.email),
+    String(req.body.education ?? existing.education),
+    String(req.body.biography ?? existing.biography),
+    String(req.body.publications ?? existing.publications),
     Number.isFinite(Number(req.body.sortOrder ?? req.body.sort_order ?? existing.sort_order))
       ? Number(req.body.sortOrder ?? req.body.sort_order ?? existing.sort_order)
       : existing.sort_order,

@@ -57,7 +57,7 @@ onMounted(async () => {
     <nav id="siteNav"><ul>
       <li><a href="index.html">Home</a></li><li><a href="prof-ye.html">Prof. Ye</a></li>
       <li><a href="index.html#research">Research</a></li><li><a href="members.html">Members</a></li>
-      <li><a href="publications.html">Publications</a></li><li><a href="contact.html">Contact</a></li>
+      <li><a href="publications.html">Publications</a></li><li><a href="news.html">News</a></li><li><a href="contact.html">Contact</a></li>
     </ul></nav>
     <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">&#9776;</button>
   </div>
